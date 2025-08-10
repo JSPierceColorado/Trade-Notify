@@ -16,14 +16,15 @@ COPY main.py /app/
 
 # Required:
 # - GOOGLE_CREDS_JSON
-# - SENDGRID_API_KEY
-# - EMAIL_FROM
-# - EMAIL_TO (comma-separated)
+# - MAILGUN_API_KEY
+# - MAILGUN_DOMAIN            (e.g., mg.yourdomain.com)
+# - EMAIL_FROM                (e.g., alerts@yourdomain.com)
+# - EMAIL_TO                  (comma-separated)
 # Optional:
 # - SHEET_NAME (default "Trading Log")
 # - LOG_TAB (default "log")
-# - SUBJECT_PREFIX (default "Aletheia")
 # - LOCAL_TZ (default "America/Denver")
 # - EXIT_IF_EMPTY (default "false")
+# - MAILGUN_BASE_URL (default "https://api.mailgun.net"; use "https://api.eu.mailgun.net" if your account is EU)
 
 CMD ["python", "/app/main.py"]
