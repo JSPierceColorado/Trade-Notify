@@ -152,4 +152,44 @@ def send_email_sendgrid(subject: str, html_body: str = "&nbsp;"):
     )
     resp = sg.client.mail.send.post(request_body=mail.get())
     if resp.status_code >= 300:
-        raise RuntimeError(f"SendGrid
+        raise RuntimeError(f"SendGrid send failed: {resp.status_code} {resp.body}")
+
+
+# =========================
+# Main
+# =========================
+def main():
+    print("✉️  Email notifier (subject-only summary) starting")
+
+    gc = get_google_client()
+    ws_log = _get_ws(gc, SHEET_NAME, LOG_TAB)
+
+    rows = read_log_rows(ws_log)
+    today_rows = rows_for_today_local(rows, LOCAL_TZ)
+
+    buys = [r for r in today_rows if (r.get("Action","").upper() == "BUY")]
+    sell_profits = [profit_from_sell_row(r) for r in today_rows]
+    sell_profits = [p for p in sell_profits if p is not None]
+    total_profit = sum(sell_profits) if sell_profits else 0.0
+
+    bought_count = len(buys)
+    profit_str = format_usd(total_profit)
+
+    if EXIT_IF_EMPTY and bought_count == 0 and abs(total_profit) < 0.005:
+        print("ℹ️ No buys today and $0 profit — skipping email (EXIT_IF_EMPTY=true).")
+        return
+
+    subject = f"{SUBJECT_PREFIX}: bought {bought_count} stocks, sold {profit_str} profit"
+    # Minimal body so your phone only shows subject
+    send_email_sendgrid(subject, html_body="&nbsp;")
+
+    print(f"✅ Email sent with subject: {subject}")
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except Exception as e:
+        import traceback
+        print("❌ Fatal error:", e)
+        traceback.print_exc()
